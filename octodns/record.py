@@ -5,6 +5,9 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
+from past.builtins import cmp
+from builtins import str
+from builtins import object
 from ipaddress import IPv4Address, IPv6Address
 from logging import getLogger
 import re
@@ -229,7 +232,7 @@ class _GeoMixin(_ValuesMixin):
             self.geo = dict(data['geo'])
         except KeyError:
             self.geo = {}
-        for k, vs in self.geo.items():
+        for k, vs in list(self.geo.items()):
             vs = sorted(self._process_values(vs))
             self.geo[k] = GeoValue(k, vs)
 
@@ -237,7 +240,7 @@ class _GeoMixin(_ValuesMixin):
         ret = super(_GeoMixin, self)._data()
         if self.geo:
             geo = {}
-            for code, value in self.geo.items():
+            for code, value in list(self.geo.items()):
                 geo[code] = value.values
             ret['geo'] = geo
         return ret
@@ -263,7 +266,7 @@ class ARecord(_GeoMixin, Record):
     def _process_values(self, values):
         for ip in values:
             try:
-                IPv4Address(unicode(ip))
+                IPv4Address(str(ip))
             except Exception:
                 raise Exception('Invalid record {}, value {} not a valid ip'
                                 .format(self.fqdn, ip))
@@ -277,7 +280,7 @@ class AaaaRecord(_GeoMixin, Record):
         ret = []
         for ip in values:
             try:
-                IPv6Address(unicode(ip))
+                IPv6Address(str(ip))
                 ret.append(ip.lower())
             except Exception:
                 raise Exception('Invalid record {}, value {} not a valid ip'

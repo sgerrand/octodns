@@ -5,7 +5,10 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-from StringIO import StringIO
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
+from io import StringIO
 from concurrent.futures import Future, ThreadPoolExecutor
 from importlib import import_module
 from os import environ
@@ -76,7 +79,7 @@ class Manager(object):
 
         self.log.debug('__init__:   configuring providers')
         self.providers = {}
-        for provider_name, provider_config in self.config['providers'].items():
+        for provider_name, provider_config in list(self.config['providers'].items()):
             # Get our class and remove it from the provider_config
             try:
                 _class = provider_config.pop('class')
@@ -87,7 +90,7 @@ class Manager(object):
             _class = self._get_provider_class(_class)
             # Build up the arguments we need to pass to the provider
             kwargs = {}
-            for k, v in provider_config.items():
+            for k, v in list(provider_config.items()):
                 try:
                     if v.startswith('env/'):
                         try:
@@ -110,7 +113,7 @@ class Manager(object):
 
         zone_tree = {}
         # sort by reversed strings so that parent zones always come first
-        for name in sorted(self.config['zones'].keys(), key=lambda s: s[::-1]):
+        for name in sorted(list(self.config['zones'].keys()), key=lambda s: s[::-1]):
             # ignore trailing dots, and reverse
             pieces = name[:-1].split('.')[::-1]
             # where starts out at the top
@@ -159,7 +162,7 @@ class Manager(object):
             return set()
         # We're not pointed at the dict for our name, the keys of which will be
         # any subzones
-        sub_zone_names = where.keys()
+        sub_zone_names = list(where.keys())
         self.log.debug('configured_sub_zones: subs=%s', sub_zone_names)
         return set(sub_zone_names)
 
@@ -187,9 +190,9 @@ class Manager(object):
                       'dry_run=%s, force=%s', eligible_zones, eligible_targets,
                       dry_run, force)
 
-        zones = self.config['zones'].items()
+        zones = list(self.config['zones'].items())
         if eligible_zones:
-            zones = filter(lambda d: d[0] in eligible_zones, zones)
+            zones = [d for d in zones if d[0] in eligible_zones]
 
         futures = []
         for zone_name, config in zones:
@@ -204,7 +207,7 @@ class Manager(object):
             except KeyError:
                 raise Exception('Zone {} is missing targets'.format(zone_name))
             if eligible_targets:
-                targets = filter(lambda d: d in eligible_targets, targets)
+                targets = [d for d in targets if d in eligible_targets]
 
             self.log.info('sync:   sources=%s -> targets=%s', sources, targets)
 
@@ -334,7 +337,7 @@ class Manager(object):
         target.apply(plan)
 
     def validate_configs(self):
-        for zone_name, config in self.config['zones'].items():
+        for zone_name, config in list(self.config['zones'].items()):
             zone = Zone(zone_name, self.configured_sub_zones(zone_name))
 
             try:
