@@ -4,7 +4,9 @@ set -e
 cd "$(dirname "$0")/.."
 
 echo "## bootstrap ###################################################################"
-script/bootstrap
+if [ -z "$CI" ]; then
+  script/bootstrap
+fi
 
 echo "## environment & versions ######################################################"
 python --version
@@ -16,7 +18,9 @@ if [ -z "$VENV_NAME" ]; then
     VENV_NAME="env"
 fi
 
-. "$VENV_NAME/bin/activate"
+if [ -z "$CI" ]; then
+  . "$VENV_NAME/bin/activate"
+fi
 
 echo "## clean up ####################################################################"
 find octodns tests -name "*.pyc" -exec rm {} \;

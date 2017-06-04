@@ -7,12 +7,14 @@ if [ -z "$VENV_NAME" ]; then
     VENV_NAME="env"
 fi
 
-ACTIVATE="$VENV_NAME/bin/activate"
-if [ ! -f "$ACTIVATE" ]; then
-    echo "$ACTIVATE does not exist, run ./script/bootstrap" >&2
-    exit 1
+if [ -z "$CI" ]; then
+  ACTIVATE="$VENV_NAME/bin/activate"
+  if [ ! -f "$ACTIVATE" ]; then
+      echo "$ACTIVATE does not exist, run ./script/bootstrap" >&2
+      exit 1
+  fi
+  . "$ACTIVATE"
 fi
-. "$ACTIVATE"
 
 # Just to be sure/safe
 export AWS_ACCESS_KEY_ID=
